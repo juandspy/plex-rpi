@@ -3,13 +3,17 @@ version: "3.7"
 services:
 
   samba:
-    image: dperson/samba # no hay tag con versiones, solo latest
+    # TODO: Fix permissions to make the folder writeable
+    image: dperson/samba # there is no latest
     restart: always
-    command: '-u "pi;password" -s "media;/media;yes;no" -s "downloads;/downloads;yes;no"'
+    command: >
+      -u "pi;password" 
+      -s "media;/media;yes;no" 
+      -s "downloads;/downloads;yes;no"
     stdin_open: true
     tty: true
     environment:
-      - TZ=America/Argentina/Mendoza
+      - TZ=${TIMEZONE}
     ports:
       - 139:139
       - 445:445
@@ -18,29 +22,30 @@ services:
       - ${STORAGE}/torrents:/downloads
 
   plex:
+    # Configure at http://your_machine_ip:32400/manage
     image: jaymoulin/plex:1.30.1.6562
     expose:
       - 32400
       - 33400
-    # Descomentar si NO usas network_mode: "host"
-    # ports:
-    #  - 32400:32400
-    #  - 33400:33400
     environment:
-      - TZ=America/Argentina/Mendoza
+      - TZ=${TIMEZONE}
     volumes:
       - ${STORAGE}/Plex Media Server:/root/Library/Application Support/Plex Media Server
       - ${MEDIA}:/media
       - ${STORAGE}/tmp:/tmp
     restart: unless-stopped
-    network_mode: "host" # Solo funciona en Linux
+    network_mode: "host"
 
   transmission:
     image : jaymoulin/transmission:3.00-1.6.1
     command: transmission-daemon -f -g /config
     volumes:
-      - ./transmission:/config
+      - ./transmission:/config           # in order to share the settings.json
       - ${STORAGE}/torrents:/downloads
+    environment:
+      # Replace with the right UID 
+      - PUID=1000
+      - PGID=1000
     ports:
       - 9091:9091
       - 51413:51413
@@ -59,8 +64,10 @@ services:
     ports:
       - 5050:5050
     environment:
-      - PUID=1001
-      - PGID=1001
+      # Replace with the right UID 
+      - PUID=1000
+      - PGID=1000
       - TORRENT_PLUGIN=transmission
-      - FG_WEBUI_PASSWD=p3l4d0_N3RD # la puedes cambiar por la que quieras
+      - FG_WEBUI_PASSWD=123456_d1ff1cult # change to whatever pass you want
+      - TZ=${TIMEZONE}
     restart: unless-stopped

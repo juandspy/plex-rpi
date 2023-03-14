@@ -12,3 +12,4 @@ downloads/*
 flexget/*.sqlite
 transmission/dht.dat
 transmission/stats.json
+flexget/.config-lock

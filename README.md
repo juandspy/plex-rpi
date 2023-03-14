@@ -32,16 +32,52 @@ way we keep the SD card safer:
 echo "export DOCKER_TMPDIR=\"/media/hdd-1/docker-tmp\"" > /etc/default/docker
 ```
 
-## Cómo correrlo
+## Docker compose
 
-Simplemente bajate este repo y modificá las rutas de tus archivos en el archivo (oculto) .env, y después corré:
+Just run it with `docker-compose up`. Add the `-d` argument for running in
+the background. You may need to modify the [.env](.env) with your paths.
 
-`docker-compose up -d`
+### Samba
 
-## IMPORTANTE
+You can configure Samba in another machine using Nautilus for example. Just
+connect to `smb://{RASPBERRY_IP}`. You can then browse the files in the `media`
+and `downloads` folders.
 
-Las raspberry son computadoras excelentes pero no muy potentes, y plex por defecto intenta transcodear los videos para ahorrar ancho de banda (en mi opinión, una HORRIBLE idea), y la chiquita raspberry no se aguanta este transcodeo "al vuelo", entonces hay que configurar los CLIENTES de plex (si, hay que hacerlo en cada cliente) para que intente reproducir el video en la máxima calidad posible, evitando transcodear y pasando el video derecho a tu tele o Chromecast sin procesar nada, de esta forma, yo he tenido 3 reproducciones concurrentes sin ningún problema. En android y iphone las opciones son muy similares, dejo un screenshot de Android acá:
+### Plex
 
-<img src="https://i.imgur.com/F3kZ9Vh.png" alt="plex" width="400"/>
+The first time you spin up the container, you may need to access 
+`http://{RASPBERRY_IP}:32400/manage` to configure the server. You may need to
+reload the page as sometimes it hangs.
 
-Más info acá: https://github.com/pablokbs/plex-rpi/issues/3
+### Transmission
+
+The [settings.json](transmission/settings.json) is configured with password
+`123456`. So visit `http://{RASPBERRY_IP}:9091` and log in with `admin/123456`.
+This will launch the Transmission UI, where you can see the torrents being
+download, edit the [settings.json](transmission/settings.json) using the UI and
+so on.
+
+You can try adding some torrent there and check it is correctly stored in
+`${STORAGE}/torrents`.
+
+```
+juan@raspberrypi:~/plex-rpi $ ls "$STORAGE/torrents/complete"
+'Big Buck Bunny (2008).mp4'
+juan@raspberrypi:~/plex-rpi $ ls "$STORAGE/torrents/incomplete"
+```
+
+### Flexget
+
+You can force Flexget to refresh the folder (otherwise it will wait for 30
+minutes -or the value configured in [config.yml](flexget/config.yml)-) by using:
+
+```
+docker-compose exec flexget flexget execute --dump --tasks sort_movies
+```
+
+In order to change the Flexget password, you need to run:
+```
+docker-compose exec flexget flexget web passwd {YOUR_PASSWORD}
+```
+
+You can log into the UI (`http://{RASPBERRY_IP}:5050`) by introducing this password then.

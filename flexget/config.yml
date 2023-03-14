@@ -1,6 +1,7 @@
 web_server: yes
 
 schedules:
+  # Check for any new file each 30 minutes
   - tasks: '*'
     interval:
       minutes: 30
@@ -9,30 +10,18 @@ templates:
   tv:
     regexp:
       reject:
+        # if the title contains "x265", ignore this file
         - x265: {from: title}
     series:
       settings:
         tv:
           exact: yes
+          # a proper is a fix to a file, but just download it if it's 12h newer than the original
           propers: 12 hours
           quality: 720p
       tv:
-      - Black Mirror
-      - Brooklyn Nine-Nine
-      - Homeland
-      - Luther
-      - Mr Robot
-      - Rick and Morty
-      - SEAL Team
-      - Sherlock
-      - Silicon Valley
-      - Suits
-      - The Flash
-      - The Good Fight
-      - The Walking Dead
-      - Tosh.0
-      - True Detective
-      - Westworld
+      # Write here the TV Series you want to look for
+      - Raised by wolves
 
     transmission:
       host: transmission
@@ -83,9 +72,9 @@ tasks:
       on_output:
        for_entries: |
          if mediainfo "{{ location }}" | grep EAC3; then
-           mkdir -p "/storage/pelis/{{ movie_name }} ({{ movie_year }})" && ffmpeg -hwaccel auto -y -i "{{ location }}" -map 0 -c:s copy -c:v copy -c:a ac3 -b:a 640k "/storage/pelis/{{ movie_name }} ({{ movie_year }})/{{ movie_name }} ({{ movie_year }}){{ location | pathext }}"
+           mkdir -p "/storage/movies/{{ movie_name }} ({{ movie_year }})" && ffmpeg -hwaccel auto -y -i "{{ location }}" -map 0 -c:s copy -c:v copy -c:a ac3 -b:a 640k "/storage/movies/{{ movie_name }} ({{ movie_year }})/{{ movie_name }} ({{ movie_year }}){{ location | pathext }}"
          else
-           mkdir -p "/storage/pelis/{{ movie_name }} ({{ movie_year }})" && cp "{{ location }}" "/storage/pelis/{{ movie_name }} ({{ movie_year }})/{{ movie_name }} ({{ movie_year }}){{ location | pathext }}"
+           mkdir -p "/storage/movies/{{ movie_name }} ({{ movie_year }})" && cp "{{ location }}" "/storage/movies/{{ movie_name }} ({{ movie_year }})/{{ movie_name }} ({{ movie_year }}){{ location | pathext }}"
          fi
   remove_stale_torrents:
     from_transmission:
